@@ -1,0 +1,453 @@
+{
+	"info": {
+		"_postman_id": "ticketai-local-dev-collection",
+		"name": "TicketAI",
+		"description": "Ticket backend (base http://localhost:8080). Flow: Create ticket -> auto-sets ticketId -> run the rest in order.",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"variable": [
+		{
+			"key": "baseUrl",
+			"value": "http://localhost:8080"
+		},
+		{
+			"key": "ticketId",
+			"value": "1"
+		}
+	],
+	"item": [
+		{
+			"name": "Create ticket",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Login broken\",\n  \"description\": \"500 on submit\",\n  \"priority\": \"HIGH\",\n  \"assignee\": \"ada\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"description": "Create ticket -> 201 + body. Saves id to {{ticketId}} via test script."
+			},
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"type": "text/javascript",
+						"exec": [
+							"var json = pm.response.json();",
+							"if (json && json.id) { pm.collectionVariables.set('ticketId', json.id); }"
+						]
+					}
+				}
+			]
+		},
+		{
+			"name": "List tickets",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets"
+					]
+				},
+				"description": "List all tickets."
+			}
+		},
+		{
+			"name": "List tickets - filter by status",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets?status=OPEN",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets"
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "OPEN"
+						}
+					]
+				},
+				"description": "Filter by status (e.g. OPEN)."
+			}
+		},
+		{
+			"name": "List tickets - search by keyword",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets?q=login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets"
+					],
+					"query": [
+						{
+							"key": "q",
+							"value": "login"
+						}
+					]
+				},
+				"description": "Keyword search on title + description (case-insensitive, partial match)."
+			}
+		},
+		{
+			"name": "List tickets - filter + search combined",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets?status=OPEN&q=login",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets"
+					],
+					"query": [
+						{
+							"key": "status",
+							"value": "OPEN"
+						},
+						{
+							"key": "q",
+							"value": "login"
+						}
+					]
+				},
+				"description": "Combine status filter + keyword search."
+			}
+		},
+		{
+			"name": "Get ticket by id",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets",
+						"{{ticketId}}"
+					]
+				},
+				"description": "Ticket details incl. comments."
+			}
+		},
+		{
+			"name": "Update ticket",
+			"request": {
+				"method": "PUT",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets",
+						"{{ticketId}}"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"title\": \"Login broken\",\n  \"description\": \"500 on submit\",\n  \"priority\": \"HIGH\",\n  \"assignee\": \"ada\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"description": "Update title / description / priority / assignee."
+			}
+		},
+		{
+			"name": "Change status - IN_PROGRESS (valid)",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/status",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets",
+						"{{ticketId}}",
+						"status"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"IN_PROGRESS\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"description": "Valid transition OPEN -> IN_PROGRESS. Expect 200."
+			}
+		},
+		{
+			"name": "Change status - RESOLVED (valid)",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/status",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets",
+						"{{ticketId}}",
+						"status"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"RESOLVED\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"description": "Valid transition IN_PROGRESS -> RESOLVED. Expect 200."
+			}
+		},
+		{
+			"name": "Change status - CLOSED (valid)",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/status",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets",
+						"{{ticketId}}",
+						"status"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"CLOSED\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"description": "Valid transition RESOLVED -> CLOSED. Expect 200."
+			}
+		},
+		{
+			"name": "Change status - CANCELLED (valid)",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/status",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets",
+						"{{ticketId}}",
+						"status"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"CANCELLED\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"description": "Valid from OPEN or IN_PROGRESS (e.g. OPEN -> CANCELLED). Expect 200 on a fresh ticket."
+			}
+		},
+		{
+			"name": "Change status - OPEN (invalid, expect 422)",
+			"request": {
+				"method": "PATCH",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/status",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets",
+						"{{ticketId}}",
+						"status"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"status\": \"OPEN\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"description": "Invalid transition example (e.g. CLOSED -> OPEN or RESOLVED -> OPEN). Expect 422 with allowed-transitions message."
+			}
+		},
+		{
+			"name": "Add comment",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "Content-Type",
+						"value": "application/json"
+					}
+				],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/comments",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets",
+						"{{ticketId}}",
+						"comments"
+					]
+				},
+				"body": {
+					"mode": "raw",
+					"raw": "{\n  \"body\": \"Looking into it\",\n  \"author\": \"agent1\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"description": "Add comment -> 201."
+			}
+		},
+		{
+			"name": "List comments",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets/{{ticketId}}/comments",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets",
+						"{{ticketId}}",
+						"comments"
+					]
+				},
+				"description": "List comments for a ticket."
+			}
+		},
+		{
+			"name": "Delete ticket",
+			"request": {
+				"method": "DELETE",
+				"header": [],
+				"url": {
+					"raw": "{{baseUrl}}/api/tickets/{{ticketId}}",
+					"host": [
+						"{{baseUrl}}"
+					],
+					"path": [
+						"api",
+						"tickets",
+						"{{ticketId}}"
+					]
+				},
+				"description": "Delete ticket -> 204."
+			}
+		}
+	]
+}
