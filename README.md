@@ -20,11 +20,16 @@ mvn spring-boot:run
 ```
 
 ## Run the frontend
+
+> The UI now lives in its own repo: `ticket_frontend/ticket_frontend_ai`
+> (sibling of this repo). The `frontend/` directory kept here is a legacy
+> copy — do not extend it; the standalone repo is the source of truth.
+
 ```bash
-cd frontend
+cd ../ticket_frontend/ticket_frontend_ai
 npm install
 npm run dev
-# UI at http://localhost:5173 (proxies /api to :8080, or use CORS directly)
+# UI at http://localhost:5174 (proxies /api to :8080, or use CORS directly)
 ```
 
 ## How to test
