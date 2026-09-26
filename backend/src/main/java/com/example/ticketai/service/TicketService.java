@@ -10,6 +10,8 @@ import com.example.ticketai.web.dto.CommentRequest;
 import com.example.ticketai.web.dto.TicketRequest;
 import com.example.ticketai.web.dto.TicketUpdateRequest;
 import java.util.List;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -52,6 +54,22 @@ public class TicketService {
             return tickets.findByStatus(status);
         }
         return tickets.findAll();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<Ticket> listPaged(TicketStatus status, String keyword, Pageable pageable) {
+        boolean hasStatus = status != null;
+        boolean hasKeyword = StringUtils.hasText(keyword);
+        if (hasStatus && hasKeyword) {
+            return tickets.searchByKeywordAndStatus(keyword.trim(), status, pageable);
+        }
+        if (hasKeyword) {
+            return tickets.searchByKeyword(keyword.trim(), pageable);
+        }
+        if (hasStatus) {
+            return tickets.findByStatus(status, pageable);
+        }
+        return tickets.findAll(pageable);
     }
 
     @Transactional(readOnly = true)
